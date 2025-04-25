@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, flash, Blueprint
+from flask import render_template, request, redirect, url_for, flash, Blueprint, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -160,3 +160,19 @@ def unenroll_client(client_id, program_id):
 
     # Redirect back to the client's profile
     return redirect(url_for('main.view_client', client_id=client.id))
+
+@bp.route('/api/client/<int:client_id>', methods=['GET'])
+def api_get_client_profile(client_id):
+    client = Client.query.get_or_404(client_id)
+    enrollments = Enrollment.query.filter_by(client_id=client.id).all()
+    programs = [Program.query.get(enrollment.program_id).name for enrollment in enrollments]
+
+    data = {
+        'id': client.id,
+        'name': client.name,
+        'age': client.age,
+        'gender': client.gender,
+        'programs': programs
+    }
+
+    return jsonify(data)
