@@ -1,11 +1,19 @@
 from flask import render_template, request, redirect, url_for, flash, Blueprint, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
+import logging
 
 from . import db
 from .models import User, Program, Client, Enrollment
 
 bp = Blueprint("main", __name__)
+
+
+logging.basicConfig(
+    filename="app.log",
+    level=logging.DEBUG,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+)
 
 
 @bp.route("/login", methods=["GET", "POST"])
@@ -14,10 +22,11 @@ def login():
         username = request.form["username"]
         password = request.form["password"]
         user = User.query.filter_by(username=username).first()
+        logging.info(f"Login attempt for user: {username}")
         if user and check_password_hash(user.password, password):
             login_user(user)
             return redirect(url_for("main.dashboard"))
-        flash("Invalid username or password")
+        logging.warning(f"Failed login attempt for user: {username}")
     return render_template("login.html")
 
 
@@ -26,6 +35,41 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for("main.login"))
+
+
+@bp.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+
+        # Check if username already exists
+        existing_user = User.query.filter_by(username=username).first()
+        if existing_user:
+            flash("Username already exists. Please choose another.", "danger")
+            return redirect(url_for("main.register"))
+
+        # Create user with hashed password
+        hashed_password = generate_password_hash(password)
+        new_user = User(username=username, password=hashed_password)
+        db.session.add(new_user)
+        db.session.commit()
+
+        flash("Account created successfully. Please log in.", "success")
+        return redirect(url_for("main.login"))
+
+    return render_template("register.html")
+
+
+@bp.route("/user/delete", methods=["POST"])
+@login_required
+def delete_user():
+    user = current_user
+    logout_user()
+    db.session.delete(user)
+    db.session.commit()
+    flash("Your account has been deleted.", "info")
+    return redirect(url_for("main.index"))
 
 
 @bp.route("/dashboard")
@@ -59,6 +103,16 @@ def create_program():
     return render_template("create_program.html")
 
 
+@bp.route("/program/<int:program_id>/delete", methods=["POST"])
+@login_required
+def delete_program(program_id):
+    program = Program.query.get_or_404(program_id)
+    db.session.delete(program)
+    db.session.commit()
+    flash(f"Program '{program.name}' deleted.", "success")
+    return redirect(url_for("main.dashboard"))
+
+
 @bp.route("/program/<int:program_id>")
 @login_required
 def view_program(program_id):
@@ -72,12 +126,13 @@ def register_client():
     if request.method == "POST":
         name = request.form["name"]
         age = request.form["age"]
+        gender = request.form["gender"]
 
         if Client.query.filter_by(name=name).first():
             flash("Client with that name already exists.")
             return redirect(url_for("main.register_client"))
 
-        client = Client(name=name, age=age)
+        client = Client(name=name, age=age, gender=gender)
         db.session.add(client)
         db.session.commit()
         flash("Client registered successfully!")
@@ -191,9 +246,11 @@ def unenroll_client(client_id, program_id):
 def api_get_client_profile(client_id):
     client = Client.query.get_or_404(client_id)
     enrollments = Enrollment.query.filter_by(client_id=client.id).all()
-    programs = [
-        Program.query.get(enrollment.program_id).name for enrollment in enrollments
-    ]
+    programs = []
+    for enrollment in enrollments:
+        program = Program.query.get(enrollment.program_id)
+        if program:
+            programs.append(program.name)
 
     data = {
         "id": client.id,
@@ -204,3 +261,23 @@ def api_get_client_profile(client_id):
     }
 
     return jsonify(data)
+
+
+@bp.route("/api/clients", methods=["GET"])
+def api_get_all_clients():
+    clients = Client.query.all()
+    client_list = []
+
+    for client in clients:
+        programs = [enrollment.program.name for enrollment in client.enrollments]
+        client_list.append(
+            {
+                "id": client.id,
+                "name": client.name,
+                "age": client.age,
+                "gender": client.gender,
+                "programs": programs,
+            }
+        )
+
+    return jsonify({"clients": client_list})

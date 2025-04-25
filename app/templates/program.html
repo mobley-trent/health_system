@@ -15,5 +15,8 @@
   </ul>
 
   <p><a href="{{ url_for('main.dashboard') }}">Back to Dashboard</a></p>
+  <form action="{{ url_for('main.delete_program', program_id=program.id) }}" method="POST">
+    <button type="submit" onclick="return confirm('Are you sure you want to delete this program?')">Delete Program</button>
+  </form>
 </body>
 </html>

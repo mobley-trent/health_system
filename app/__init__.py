@@ -1,14 +1,17 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+import logging
 import os
 
 db = SQLAlchemy()
 login_manager = LoginManager()
+logging.basicConfig(level=logging.DEBUG)
 
 
 def create_app():
     app = Flask(__name__)
+    app.logger.setLevel(logging.DEBUG)
 
     # Configuration
     app.config["SECRET_KEY"] = "supersecretkey"
