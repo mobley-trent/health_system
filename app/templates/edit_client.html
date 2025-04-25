@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head><title>Edit Client</title></head>
+<body>
+  <h2>Edit Client Information</h2>
+  <form method="POST">
+    <label>Name:</label><br>
+    <input type="text" name="name" value="{{ client.name }}" required><br>
+    <label>Age:</label><br>
+    <input type="number" name="age" value="{{ client.age }}" required><br><br>
+    <button type="submit">Update Client</button>
+  </form>
+  <p><a href="{{ url_for('main.view_client', client_id=client.id) }}">Back to Profile</a></p>
+  <p><a href="{{ url_for('main.clients') }}">Back to Clients</a></p>
+</body>
+</html>

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head><title>Register Client</title></head>
+<body>
+  <h2>Register New Client</h2>
+  <form method="POST">
+    <label>Name:</label><br>
+    <input type="text" name="name" required><br>
+    <label>Age:</label><br>
+    <input type="number" name="age" required><br><br>
+    <button type="submit">Register Client</button>
+  </form>
+  <p><a href="{{ url_for('main.dashboard') }}">Back to Dashboard</a></p>
+</body>
+</html>

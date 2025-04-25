@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head><title>{{ client.name }}'s Profile</title></head>
+<body>
+  <h2>{{ client.name }}</h2>
+  <p>Age: {{ client.age }}</p>
+
+  <h3>Enrolled Programs</h3>
+  <ul>
+    {% for program in client.programs %}
+      <li>{{ program.name }}</li>
+    {% else %}
+      <li>No programs enrolled.</li>
+    {% endfor %}
+  </ul>
+
+  <a href="{{ url_for('main.edit_client', client_id=client.id) }}">Edit</a> | 
+  <form action="{{ url_for('main.delete_client', client_id=client.id) }}" method="POST" style="display:inline;">
+    <button type="submit">Delete</button>
+  </form>
+  <p><a href="{{ url_for('main.clients') }}">Back to Clients</a></p>
+</body>
+</html>

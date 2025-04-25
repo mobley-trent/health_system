@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head><title>Clients</title></head>
+<body>
+  <h2>Clients List</h2>
+  <form method="POST">
+    <input type="text" name="search" placeholder="Search clients...">
+    <button type="submit">Search</button>
+  </form>
+
+  <ul>
+    {% for client in clients %}
+      <li><a href="{{ url_for('main.view_client', client_id=client.id) }}">{{ client.name }}</a></li>
+    {% else %}
+      <li>No clients found.</li>
+    {% endfor %}
+  </ul>
+
+  <p><a href="{{ url_for('main.register_client') }}">Register New Client</a></p>
+  <p><a href="{{ url_for('main.dashboard') }}">Back to Dashboard</a></p>
+</body>
+</html>
