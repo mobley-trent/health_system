@@ -24,4 +24,12 @@ def create_app():
         from .models import User, Client, Program, Enrollment
         db.create_all()
 
+        # Create default doctor user if not exists
+        from .models import User
+        from werkzeug.security import generate_password_hash
+        if not User.query.filter_by(username='doctor').first():
+            doctor = User(username='doctor', password=generate_password_hash('password'))
+            db.session.add(doctor)
+            db.session.commit()
+
     return app

@@ -1,5 +1,6 @@
 from . import db
 from flask_login import UserMixin
+from . import login_manager
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -28,3 +29,8 @@ class Enrollment(db.Model):
 
     client = db.relationship('Client', back_populates='enrollments')
     program = db.relationship('Program', back_populates='enrollments')
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
