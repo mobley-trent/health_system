@@ -6,29 +6,35 @@ import os
 db = SQLAlchemy()
 login_manager = LoginManager()
 
+
 def create_app():
     app = Flask(__name__)
-    
+
     # Configuration
-    app.config['SECRET_KEY'] = 'supersecretkey'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../instance/health.db'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config["SECRET_KEY"] = "supersecretkey"
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///../instance/health.db"
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     db.init_app(app)
     login_manager.init_app(app)
 
     from . import routes
+
     app.register_blueprint(routes.bp)
 
     with app.app_context():
         from .models import User, Client, Program, Enrollment
+
         db.create_all()
 
         # Create default doctor user if not exists
         from .models import User
         from werkzeug.security import generate_password_hash
-        if not User.query.filter_by(username='doctor').first():
-            doctor = User(username='doctor', password=generate_password_hash('password'))
+
+        if not User.query.filter_by(username="doctor").first():
+            doctor = User(
+                username="doctor", password=generate_password_hash("password")
+            )
             db.session.add(doctor)
             db.session.commit()
 
