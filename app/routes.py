@@ -3,7 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from . import db
-from .models import User, Program, Client
+from .models import User, Program, Client, Enrollment
 
 bp = Blueprint('main', __name__)
 
@@ -82,7 +82,9 @@ def register_client():
 @login_required
 def view_client(client_id):
     client = Client.query.get_or_404(client_id)
-    return render_template('client_profile.html', client=client)
+    # Fetch enrolled programs by joining the Enrollment model with the Program model
+    enrolled_programs = Program.query.join(Enrollment).filter(Enrollment.client_id == client.id).all()
+    return render_template('client_profile.html', client=client, programs=enrolled_programs)
 
 @bp.route('/client/<int:client_id>/edit', methods=['GET', 'POST'])
 @login_required
@@ -116,3 +118,45 @@ def clients():
     else:
         clients = Client.query.all()
     return render_template('clients.html', clients=clients)
+
+@bp.route('/client/<int:client_id>/enroll', methods=['GET', 'POST'])
+@login_required
+def enroll_client(client_id):
+    client = Client.query.get_or_404(client_id)
+    programs = Program.query.all()  # List all programs to choose from
+
+    if request.method == 'POST':
+        selected_program_ids = request.form.getlist('programs')  # Get selected program IDs
+        selected_programs = Program.query.filter(Program.id.in_(selected_program_ids)).all()
+
+        # Add selected programs to the client
+        for program in selected_programs:
+            if not Enrollment.query.filter_by(client_id=client.id, program_id=program.id).first():
+                new_enrollment = Enrollment(client_id=client.id, program_id=program.id)
+                db.session.add(new_enrollment)
+
+        db.session.commit()
+        flash("Client enrolled in selected programs!")
+        return redirect(url_for('main.view_client', client_id=client.id))
+
+    return render_template('enroll_client.html', client=client, programs=programs)
+
+@bp.route('/client/<int:client_id>/unenroll/<int:program_id>', methods=['POST'])
+@login_required
+def unenroll_client(client_id, program_id):
+    client = Client.query.get_or_404(client_id)
+    program = Program.query.get_or_404(program_id)
+    
+    # Find the enrollment record for this client and program
+    enrollment = Enrollment.query.filter_by(client_id=client.id, program_id=program.id).first()
+
+    if enrollment:
+        # If enrollment exists, delete it
+        db.session.delete(enrollment)
+        db.session.commit()
+        flash(f"{client.name} has been de-enrolled from {program.name}.", "success")
+    else:
+        flash(f"{client.name} is not enrolled in {program.name}.", "danger")
+
+    # Redirect back to the client's profile
+    return redirect(url_for('main.view_client', client_id=client.id))
