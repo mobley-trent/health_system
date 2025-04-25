@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head><title>{{ program.name }}</title></head>
+<body>
+  <h2>{{ program.name }}</h2>
+  <p>{{ program.description }}</p>
+
+  <h3>Enrolled Clients</h3>
+  <ul>
+    {% for enrollment in program.enrollments %}
+      <li>{{ enrollment.client.name }}</li>
+    {% else %}
+      <li>No clients enrolled yet.</li>
+    {% endfor %}
+  </ul>
+
+  <p><a href="{{ url_for('main.dashboard') }}">Back to Dashboard</a></p>
+</body>
+</html>

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head><title>Create Program</title></head>
+<body>
+  <h2>Create New Program</h2>
+  <form method="POST">
+    <label>Name:</label><br>
+    <input type="text" name="name" required><br>
+    <label>Description:</label><br>
+    <textarea name="description" required></textarea><br><br>
+    <button type="submit">Create Program</button>
+  </form>
+  <p><a href="{{ url_for('main.dashboard') }}">Back to Dashboard</a></p>
+</body>
+</html>
