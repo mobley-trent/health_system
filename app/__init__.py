@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_sqlalchemy import SQLAlchemy
@@ -26,6 +27,9 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
     limiter.init_app(app)
+
+    # Enable CORS
+    CORS(app)
 
     from . import routes
 
