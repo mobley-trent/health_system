@@ -170,6 +170,12 @@ def delete_program(program_id):
     """
     program = Program.query.get_or_404(program_id)
     program_name = program.name
+
+    # Unenroll all clients from this program
+    enrollments = Enrollment.query.filter_by(program_id=program.id).all()
+    for enrollment in enrollments:
+        db.session.delete(enrollment)
+        
     db.session.delete(program)
     db.session.commit()
     logging.info(f"Program {program_name} successfully deleted!")
