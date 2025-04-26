@@ -183,6 +183,12 @@ def edit_client(client_id):
 def delete_client(client_id):
     client = Client.query.get_or_404(client_id)
     client_name = client.name
+
+    # Unenroll the client from all programs
+    enrollments = Enrollment.query.filter_by(client_id=client.id).all()
+    for enrollment in enrollments:
+        db.session.delete(enrollment)
+
     db.session.delete(client)
     db.session.commit()
     logging.info(f"Client {client_name} deleted successfully!")
@@ -223,9 +229,7 @@ def enroll_client(client_id):
                 db.session.add(new_enrollment)
 
         db.session.commit()
-        logging.info(
-            f"Client {client.name} enrolled in {", ".join(programs)} programs!"
-        )
+        logging.info(f"Client {client.name} enrollment successful!")
         return redirect(url_for("main.view_client", client_id=client.id))
 
     return render_template("enroll_client.html", client=client, programs=programs)
