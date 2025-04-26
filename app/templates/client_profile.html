@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html>
-<head><title>{{ client.name }}'s Profile</title></head>
+<head>
+  <title>{{ client.name }}'s Profile</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
 <body>
   <h2>{{ client.name }}</h2>
   <p>Age: {{ client.age }}</p>

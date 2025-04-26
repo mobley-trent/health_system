@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html>
-<head><title>Profile</title></head>
+<head>
+  <title>Profile</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
 <body>
   <h2>Doctor Profile</h2>
   <p>Username: {{ user.username }}</p>

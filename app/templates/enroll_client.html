@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html>
-<head><title>Enroll Client in Programs</title></head>
+<head>
+  <title>Enroll Client in Programs</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
 <body>
   <h2>Enroll {{ client.name }} in Programs</h2>
   <form method="POST">

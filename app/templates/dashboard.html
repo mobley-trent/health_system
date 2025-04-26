@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html>
-<head><title>Dashboard</title></head>
+<head>
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
 <body>
   <h1>Welcome to the Dashboard</h1>
   <a href="{{ url_for('main.create_program') }}">Create New Program</a>

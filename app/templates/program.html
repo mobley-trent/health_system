@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html>
-<head><title>{{ program.name }}</title></head>
+<head>
+  <title>{{ program.name }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
 <body>
   <h2>{{ program.name }}</h2>
   <p>{{ program.description }}</p>
