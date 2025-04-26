@@ -15,6 +15,11 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
 
+@bp.route('/')
+def index():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.dashboard'))
+    return redirect(url_for('main.login'))
 
 @bp.route("/login", methods=["GET", "POST"])
 def login():
@@ -64,7 +69,7 @@ def register():
 @bp.route("/user/delete", methods=["POST"])
 @login_required
 def delete_user():
-    user = current_user
+    user = current_user._get_current_object()
     logout_user()
     db.session.delete(user)
     db.session.commit()
