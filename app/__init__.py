@@ -1,4 +1,6 @@
 from flask import Flask
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from dotenv import load_dotenv
@@ -7,6 +9,7 @@ import os
 
 load_dotenv()  # Load environment variables from .env file
 db = SQLAlchemy()
+limiter = Limiter(get_remote_address, headers_enabled=True)
 login_manager = LoginManager()
 logging.basicConfig(level=logging.DEBUG)
 
@@ -22,6 +25,7 @@ def create_app():
 
     db.init_app(app)
     login_manager.init_app(app)
+    limiter.init_app(app)
 
     from . import routes
 

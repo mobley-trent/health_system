@@ -1,9 +1,9 @@
-from flask import render_template, request, redirect, url_for, flash, Blueprint, jsonify
+from flask import render_template, request, redirect, url_for, Blueprint, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 import logging
 
-from . import db
+from . import db, limiter
 from .models import User, Program, Client, Enrollment
 
 bp = Blueprint("main", __name__)
@@ -53,7 +53,7 @@ def register():
         # Check if username already exists
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
-            flash("Username already exists. Please choose another.", "danger")
+            logging.info(f"Failed register attempt for {username}")
             return redirect(url_for("main.register"))
 
         # Create user with hashed password
@@ -62,7 +62,7 @@ def register():
         db.session.add(new_user)
         db.session.commit()
 
-        flash("Account created successfully. Please log in.", "success")
+        logging.info(f"User {username} successfully created!")
         return redirect(url_for("main.login"))
 
     return render_template("register.html")
@@ -75,7 +75,7 @@ def delete_user():
     logout_user()
     db.session.delete(user)
     db.session.commit()
-    flash("Your account has been deleted.", "info")
+    logging.info(f"User {user.username} successfully deleted!")
     return redirect(url_for("main.index"))
 
 
@@ -99,12 +99,13 @@ def create_program():
         name = request.form["name"]
         description = request.form["description"]
         if Program.query.filter_by(name=name).first():
-            flash("Program with that name already exists.")
+            logging.info(f"Program {name} already exists!")
             return redirect(url_for("main.create_program"))
 
         program = Program(name=name, description=description)
         db.session.add(program)
         db.session.commit()
+        logging.info(f"Program {name} successfully created!")
         return redirect(url_for("main.dashboard"))
 
     return render_template("create_program.html")
@@ -114,9 +115,10 @@ def create_program():
 @login_required
 def delete_program(program_id):
     program = Program.query.get_or_404(program_id)
+    program_name = program.name
     db.session.delete(program)
     db.session.commit()
-    flash(f"Program '{program.name}' deleted.", "success")
+    logging.info(f"Program {program_name} successfully deleted!")
     return redirect(url_for("main.dashboard"))
 
 
@@ -136,13 +138,13 @@ def register_client():
         gender = request.form["gender"]
 
         if Client.query.filter_by(name=name).first():
-            flash("Client with that name already exists.")
+            logging.warning(f"Client {name} already exists!")
             return redirect(url_for("main.register_client"))
 
         client = Client(name=name, age=age, gender=gender)
         db.session.add(client)
         db.session.commit()
-        flash("Client registered successfully!")
+        logging.info(f"Client {name} registered successfully!")
         return redirect(url_for("main.view_client", client_id=client.id))
 
     return render_template("register_client.html")
@@ -170,7 +172,7 @@ def edit_client(client_id):
         client.name = request.form["name"]
         client.age = request.form["age"]
         db.session.commit()
-        flash("Client updated successfully!")
+        logging.info(f"Client {client.name} updated successfully!")
         return redirect(url_for("main.view_client", client_id=client.id))
 
     return render_template("edit_client.html", client=client)
@@ -180,9 +182,10 @@ def edit_client(client_id):
 @login_required
 def delete_client(client_id):
     client = Client.query.get_or_404(client_id)
+    client_name = client.name
     db.session.delete(client)
     db.session.commit()
-    flash("Client deleted successfully!")
+    logging.info(f"Client {client_name} deleted successfully!")
     return redirect(url_for("main.clients"))
 
 
@@ -220,7 +223,9 @@ def enroll_client(client_id):
                 db.session.add(new_enrollment)
 
         db.session.commit()
-        flash("Client enrolled in selected programs!")
+        logging.info(
+            f"Client {client.name} enrolled in {", ".join(programs)} programs!"
+        )
         return redirect(url_for("main.view_client", client_id=client.id))
 
     return render_template("enroll_client.html", client=client, programs=programs)
@@ -241,15 +246,16 @@ def unenroll_client(client_id, program_id):
         # If enrollment exists, delete it
         db.session.delete(enrollment)
         db.session.commit()
-        flash(f"{client.name} has been de-enrolled from {program.name}.", "success")
+        logging.info(f"{client.name} has been de-enrolled from {program.name}.")
     else:
-        flash(f"{client.name} is not enrolled in {program.name}.", "danger")
+        logging.warning(f"{client.name} is not enrolled in {program.name}.")
 
     # Redirect back to the client's profile
     return redirect(url_for("main.view_client", client_id=client.id))
 
 
 @bp.route("/api/client/<int:client_id>", methods=["GET"])
+@limiter.limit("100 per minute")
 def api_get_client_profile(client_id):
     client = Client.query.get_or_404(client_id)
     enrollments = Enrollment.query.filter_by(client_id=client.id).all()
@@ -271,6 +277,7 @@ def api_get_client_profile(client_id):
 
 
 @bp.route("/api/clients", methods=["GET"])
+@limiter.limit("100 per minute")
 def api_get_all_clients():
     clients = Client.query.all()
     client_list = []
