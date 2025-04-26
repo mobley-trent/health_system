@@ -15,11 +15,13 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
 
-@bp.route('/')
+
+@bp.route("/")
 def index():
     if current_user.is_authenticated:
-        return redirect(url_for('main.dashboard'))
-    return redirect(url_for('main.login'))
+        return redirect(url_for("main.dashboard"))
+    return redirect(url_for("main.login"))
+
 
 @bp.route("/login", methods=["GET", "POST"])
 def login():
