@@ -2,6 +2,8 @@
 
 This is a Flask-based web application for managing health programs, clients, and user accounts. The app allows users to create and manage health programs, register clients, enroll clients in programs, and view detailed profiles for both clients and programs.
 
+The live version of the project can be accessed at this [link](https://health-system-sigma.vercel.app/). However, Vercel does not persist the SQLite DB after the session and it will create a new DB for every session.
+
 ## Features
 
 - **User Authentication**: Users can register, log in, and manage their accounts.
@@ -56,6 +58,15 @@ health_system/
     python run.py
     ```
 6. Open your browser and go to `http://localhost:5000` to access the app.
+
+## Demonstration
+
+https://github.com/user-attachments/assets/51bdc2df-bc4b-4cb3-9186-4662fcf4a0b2
+
+## Slides
+
+[HEALTH INFORMATION SYSTEM.pptx](https://github.com/user-attachments/files/19928696/HEALTH.INFORMATION.SYSTEM.pptx)
+
 
 ## Page routes
 - `/` - Home page (dashboard). Redirects to `/login` if not authenticated
